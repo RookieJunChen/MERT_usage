@@ -14,7 +14,7 @@ processor = Wav2Vec2FeatureExtractor.from_pretrained("m-a-p/MERT-v1-330M", trust
 
 wav_pth = "/cfs3/share/corpus/eval_dataset/test_codec/source/司徒兰芳 - 爱的草原情的河.mp3.wav"
 wav, sampling_rate = librosa.load(wav_pth, sr=24000)
-chunk_size = sampling_rate * 60  # 10 seconds
+chunk_size = sampling_rate * 120  # 120 seconds
 
 hidden_state_list = []
 
@@ -50,9 +50,10 @@ for n in range(0, len(wav) // chunk_size + 1):
 
     # take a look at the output shape, there are 25 layers of representation
     # each layer performs differently in different downstream tasks, you should choose empirically
+    # for Time steps, almost 32 times downsample from wav
     all_layer_hidden_states = torch.stack(outputs.hidden_states).squeeze()
     print(all_layer_hidden_states.shape)  # [25 layer, Time steps, 1024 feature_dim]
-    print(all_layer_hidden_states[20].shape)  # [25 layer, Time steps, 1024 feature_dim]
+    print(all_layer_hidden_states[20].shape)  # [Time steps, 1024 feature_dim]
     hidden_state_list.append(all_layer_hidden_states[20])
 
     # for utterance level classification tasks, you can simply reduce the representation in time
@@ -63,7 +64,6 @@ for n in range(0, len(wav) // chunk_size + 1):
     aggregator = nn.Conv1d(in_channels=25, out_channels=1, kernel_size=1).to(device)
     weighted_avg_hidden_states = aggregator(time_reduced_hidden_states.unsqueeze(0)).squeeze()
     print(weighted_avg_hidden_states.shape)  # [1024]
-    print(time_reduced_hidden_states[20].shape)
 
 total_layer20_hidden_states = torch.cat(hidden_state_list, dim=0)
 print(total_layer20_hidden_states.shape)
