@@ -115,3 +115,7 @@ class HubertWithKmeans(nn.Module):
 
         codebook_indices, = unpack(codebook_indices, packed_shape, '*')
         return codebook_indices
+
+
+if __name__ == '__main__':
+    wav_pth = "/cfs3/share/corpus/eval_dataset/test_codec/source/司徒兰芳 - 爱的草原情的河.mp3.wav"
